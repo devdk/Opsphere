@@ -1,0 +1,45 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env
+.env
+.env.local
+.env*.local
+
+# local database (keep folder via .gitkeep)
+/data/*.db
+/data/*.db-journal
+/data/*.db-wal
+/data/*.db-shm
+
+# generated output (keep folders via .gitkeep)
+/output/carousels/*
+!/output/carousels/.gitkeep
+/output/linkedin/*
+!/output/linkedin/.gitkeep
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# AI-generated images (keep folder via .gitkeep)
+/public/generated/*
+!/public/generated/.gitkeep
