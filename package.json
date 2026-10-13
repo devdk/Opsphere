@@ -1,8 +1,8 @@
 {
-  "name": "command-centre",
+  "name": "opsphere",
   "version": "0.1.0",
   "private": true,
-  "description": "Local command centre dashboard for full-stack dev workflows: social content, lead gen, outreach emails.",
+  "description": "Opsphere — all-in-one ops dashboard for full-stack dev workflows: social content, lead gen, outreach emails.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

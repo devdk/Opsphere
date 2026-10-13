@@ -5,7 +5,7 @@ import Topbar from "@/components/Topbar";
 import ChatWidget from "@/components/ChatWidget";
 
 export const metadata: Metadata = {
-  title: "Command Centre",
+  title: "Opsphere",
   description: "Local command centre for content, leads and outreach.",
 };
 

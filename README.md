@@ -1,6 +1,6 @@
-# Command Centre
+# Opsphere
 
-A local command centre dashboard for a full-stack web developer — generate
+Opsphere — an all-in-one ops dashboard for a full-stack web developer — generate
 Instagram carousels and LinkedIn posts, scrape and manage leads, and draft and
 send outreach emails, all from one place.
 

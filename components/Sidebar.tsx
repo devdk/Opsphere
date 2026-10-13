@@ -21,7 +21,7 @@ export default function Sidebar() {
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface">
       <div className="flex items-center gap-2 px-6 py-5">
         <span className="h-3 w-3 rounded-full bg-accent" />
-        <span className="text-sm font-semibold tracking-wide">COMMAND CENTRE</span>
+        <span className="text-sm font-semibold tracking-wide">OPSPHERE</span>
       </div>
       <nav className="flex-1 px-3 py-2">
         {NAV.map((item) => {

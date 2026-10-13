@@ -1,4 +1,4 @@
-# DK's To-Do — manual jobs on your side
+# DK's To-Do (Opsphere) — manual jobs on your side
 
 Things only you can do (accounts, tokens, approvals). Claude maintains this
 file; tick items off as you go. Code-side work is tracked in

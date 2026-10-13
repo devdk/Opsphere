@@ -3,7 +3,7 @@ import { getGemini, DEFAULT_MODEL } from "@/lib/gemini";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const SYSTEM = `You are the command assistant for DK's marketing command centre dashboard.
+const SYSTEM = `You are the command assistant for Opsphere, DK's all-in-one marketing ops dashboard.
 DK is a full-stack web developer (WordPress, Elementor, Shopify, React, SEO)
 based in Gurgaon, India, targeting UK and Indian tier-1 city clients.
 You have awareness of all dashboard modules:

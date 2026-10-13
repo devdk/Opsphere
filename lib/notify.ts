@@ -36,7 +36,7 @@ export async function notify(opts: NotifyOpts): Promise<void> {
     const href = opts.link ? `${base}${opts.link}` : base;
     await sendEmail({
       to,
-      subject: `[Command Centre] ${opts.title}`,
+      subject: `[Opsphere] ${opts.title}`,
       html:
         `<p>${opts.body ?? opts.title}</p>` +
         `<p><a href="${href}">Open dashboard</a></p>`,

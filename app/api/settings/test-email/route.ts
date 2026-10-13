@@ -9,7 +9,7 @@ export async function POST() {
     const to = process.env.PREVIEW_EMAIL || process.env.GMAIL_USER || "";
     const id = await sendPreview({
       to,
-      subject: "Command Centre — test email",
+      subject: "Opsphere — test email",
       html:
         "<p>✅ Your command centre can send email.</p>" +
         "<p>This is what your morning preview emails will arrive from.</p>",
