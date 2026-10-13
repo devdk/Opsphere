@@ -1,153 +1,132 @@
-# Opsphere
+<div align="center">
 
-Opsphere — an all-in-one ops dashboard for a full-stack web developer — generate
-Instagram carousels and LinkedIn posts, scrape and manage leads, and draft and
-send outreach emails, all from one place.
+# ⬤ Opsphere
 
-Built for DK @ **Mirasphere Digital**, Gurgaon (WordPress, Elementor, Shopify,
-React & SEO work for UK and Indian clients).
+**One dashboard that runs the business side of a dev agency — AI content,
+scheduled publishing, lead gen and outreach.**
 
-## Tech stack
+Built by DK @ **Mirasphere Digital** · Gurgaon ·
+serving UK & Indian clients (WordPress · Elementor · Shopify · React · SEO)
 
-- **Next.js 14** (App Router, TypeScript)
-- **Tailwind CSS**
-- **better-sqlite3** — local database (`/data/leads.db`)
-- **node-cron** — scheduler for publishing/outreach jobs
-- **@google/genai** — AI generation (Google Gemini)
-- **nodemailer** — email sending (Gmail SMTP)
-- **canvas** (node-canvas) — image / carousel generation
-- **puppeteer + cheerio** — web scraping for lead gen
+`Next.js 14` · `TypeScript` · `SQLite` · `Gemini` · `LinkedIn API` · `Instagram Graph API`
 
-## Prerequisites
+</div>
 
-- **Node.js 18.18+** (Node 20 LTS recommended)
-- A C/C++ toolchain for native modules (`better-sqlite3`, `canvas`):
-  - **Windows:** install the "Desktop development with C++" workload
-    (Visual Studio Build Tools), which ships the required compiler. `puppeteer`
-    downloads its own Chromium automatically.
-  - **macOS:** `xcode-select --install`, plus
-    `brew install pkg-config cairo pango libpng jpeg giflib librsvg` for `canvas`.
-  - **Linux (Debian/Ubuntu):**
-    `sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev`.
+---
 
-## Setup
+## What it does
 
-1. **Install dependencies**
+| Module | Status | What you get |
+|---|---|---|
+| 📸 **Instagram studio** | ✅ Live | Topic → 6-slide branded carousel (AI copy + AI background), rendered at 1080×1350, one-click **publish or schedule** to Instagram |
+| 💼 **LinkedIn pipeline** | ✅ Live | Topic → live-web research brief → drafted post → image → publish (text or image posts), OAuth built in |
+| ⏰ **Tasks & automation** | ✅ Live | Cron-driven content generation (e.g. "carousel every weekday 7am IST"), run history, in-app + email notifications |
+| 🛡️ **Token lifecycle** | ✅ Live | Daily expiry check, warnings 10 days out, Meta token **auto-refresh** |
+| 💬 **Command chat** | ✅ Live | Gemini assistant that runs dashboard actions and debugs the app itself |
+| 🎯 **Leads** | 🔜 Phase 3 | Scrape UK/India agency directories, enrich emails via Hunter.io |
+| ✉️ **Outreach** | 🔜 Phase 4 | AI-personalised cold email drafting, review queue, capped sending |
 
-   ```bash
-   npm install
-   ```
+## Quick start
 
-2. **Configure environment variables**
+```bash
+npm install            # needs a C/C++ toolchain for better-sqlite3 (see below)
+cp .env.local.example .env.local   # fill in your keys
+npm run db:init        # create + seed the SQLite database
+npm run dev            # dashboard on http://localhost:3000
+npm run scheduler      # (separate terminal) cron runner for recurring tasks
+```
 
-   Copy the example file and fill in your keys:
+Then POST `http://localhost:3000/api/init` once (or just open the dashboard)
+to start in-server jobs: scheduled publishing + daily token checks.
 
-   ```bash
-   cp .env.local.example .env.local
-   ```
+### Native module prerequisites
 
-   | Key                   | What it's for                                            |
-   | --------------------- | -------------------------------------------------------- |
-   | `GEMINI_API_KEY`      | Google Gemini API key for AI generation                  |
-   | `GMAIL_USER`          | Gmail address used to send outreach                      |
-   | `GMAIL_APP_PASSWORD`  | Gmail **App Password** (not your account password)       |
-   | `PREVIEW_EMAIL`       | Address that receives preview/test emails                |
-   | `META_USER_ID`        | Instagram/Meta Graph API user id                         |
-   | `META_ACCESS_TOKEN`   | Meta access token (publishing + status dot)              |
-   | `LINKEDIN_ACCESS_TOKEN` | LinkedIn access token (publishing + status dot)        |
-   | `HUNTER_API_KEY`      | Hunter.io key for finding lead emails                    |
+`better-sqlite3` and (optional) `canvas` compile natively:
 
-3. **Initialise the database**
+- **Windows** — Visual Studio Build Tools, "Desktop development with C++"
+- **macOS** — `xcode-select --install`
+- **Debian/Ubuntu** — `sudo apt-get install -y build-essential`
 
-   ```bash
-   npm run db:init
-   ```
+## Configuration (`.env.local`)
 
-   This creates `/data/leads.db` with the `leads`, `posts` and `settings`
-   tables and seeds default settings. The app also self-heals the schema on
-   first request, so this step is optional but recommended.
+| Key | Needed for |
+|---|---|
+| `GEMINI_API_KEY` | All AI generation (copy, research, chat) |
+| `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | One-time OAuth at `/api/linkedin/auth` |
+| `LINKEDIN_ACCESS_TOKEN` / `LINKEDIN_PERSON_URN` | LinkedIn publishing |
+| `META_USER_ID` / `META_ACCESS_TOKEN` | Instagram publishing |
+| `META_APP_ID` / `META_APP_SECRET` | *Optional:* Meta token auto-refresh + exact expiry tracking |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_UPLOAD_PRESET` | Public image URLs for the Instagram Graph API |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` / `PREVIEW_EMAIL` | Notification + (Phase 4) outreach email |
+| `HUNTER_API_KEY` | (Phase 3) lead email enrichment |
+| `IMAGE_API_URL` / `META_GRAPH_VERSION` | Optional overrides |
 
-4. **Run the dev server**
+Step-by-step account setup (Meta app, long-lived tokens, Cloudinary unsigned
+preset): **[PHASE1-SETUP.md](PHASE1-SETUP.md)** · Manual checklist:
+**[DK-TODO.md](DK-TODO.md)**
 
-   ```bash
-   npm run dev
-   ```
+## How publishing works
 
-   Open <http://localhost:3000>.
+**Instagram** — slides render client-side on canvas (exactly what you preview
+is what ships), get saved server-side, uploaded to Cloudinary for public URLs,
+then pushed through the Graph API container flow (item containers → carousel
+container → publish), with status polling at each step.
 
-## Available scripts
+**LinkedIn** — text posts via `ugcPosts`; image posts via
+`registerUpload → upload → ugcPost`.
 
-| Command           | Description                              |
-| ----------------- | ---------------------------------------- |
-| `npm run dev`     | Start the dev server on port 3000        |
-| `npm run build`   | Production build                         |
-| `npm run start`   | Start the production server              |
-| `npm run lint`    | Run Next.js ESLint                       |
-| `npm run db:init` | Create/seed the SQLite database          |
+**Scheduling** — mark a post *approved* with a time (or use the Schedule
+button on a carousel). An in-server cron checks every 5 minutes, publishes via
+the same code path as the button, retries up to 3× on failure, then
+unschedules and emails you rather than failing silently.
+
+**Tokens** — LinkedIn and Meta tokens last ~60 days. A daily 9am IST job
+warns 10 days before expiry; with `META_APP_ID`/`META_APP_SECRET` set, the
+Meta token refreshes itself.
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server on :3000 |
+| `npm run build` / `start` | Production build / serve |
+| `npm run db:init` | Create + seed SQLite (`data/leads.db`) |
+| `npm run scheduler` | Standalone cron runner for Tasks-page jobs |
+| `npm run seed` | Seed sample data |
 
 ## Project structure
 
 ```
-command-centre/
-├─ app/
-│  ├─ layout.tsx            Root layout (sidebar + topbar + chat widget)
-│  ├─ page.tsx              Dashboard home (stats overview)
-│  ├─ globals.css           Tailwind + theme tokens
-│  ├─ instagram/page.tsx    Placeholder
-│  ├─ linkedin/page.tsx     Placeholder
-│  ├─ leads/page.tsx        Placeholder
-│  ├─ emails/page.tsx       Placeholder
-│  ├─ chat/page.tsx         Command Chat placeholder
-│  ├─ settings/page.tsx     Placeholder
-│  └─ api/
-│     ├─ stats/route.ts     Live counts for the topbar
-│     └─ init/route.ts      Init schema + start scheduler
-├─ components/
-│  ├─ Sidebar.tsx           Nav links to all modules
-│  ├─ Topbar.tsx            Stats strip (fetches /api/stats)
-│  └─ ChatWidget.tsx        Floating chat placeholder
-├─ lib/
-│  ├─ db.ts                 SQLite setup, schema & query helpers
-│  ├─ gemini.ts             Google Gen AI (Gemini) wrapper
-│  ├─ mailer.ts             Nodemailer (Gmail) setup
-│  └─ scheduler.ts          node-cron jobs
-├─ scripts/
-│  └─ init-db.js            Standalone DB initialiser
-├─ output/
-│  ├─ carousels/            Generated Instagram carousels
-│  └─ linkedin/             Generated LinkedIn assets
-├─ data/                    SQLite database lives here (leads.db)
-├─ .env.local.example       Required env var keys (no values)
-└─ package.json
+app/
+  page.tsx               Dashboard (stats overview)
+  instagram/ linkedin/   Content studios
+  tasks/ messages/       Automation + notification centre
+  chat/                  Command chat (Gemini, streaming, action blocks)
+  settings/              Integrations (live connectivity tests), brand, tone
+  api/                   posts, tasks, messages, settings, linkedin OAuth,
+                         chat, health, debug, init
+components/              CarouselStudio, PostComposer, Sidebar, Topbar, MicButton
+lib/
+  db.ts                  SQLite schema + typed helpers
+  gemini.ts              Gemini wrapper (text / JSON / grounded search / stream)
+  publish.ts             Shared publish logic (button + cron use the same path)
+  meta.ts  linkedin.ts   Platform APIs
+  imagehost.ts           Cloudinary unsigned uploads
+  scheduler.ts tokens.ts In-server cron + token lifecycle
+  tasks.ts notify.ts     Task runner + notifications (in-app & email)
+scripts/scheduler.js     Standalone cron process for recurring generation
+data/                    SQLite database (git-ignored)
 ```
 
-## Database schema
+## Security notes
 
-**leads** — `id`, `name`, `location`, `website`, `email`, `agency_type`,
-`region`, `status` (`new`/`drafted`/`sent`/`replied`), `email_subject`,
-`email_body`, `created_at`, `sent_at`
+- `.env.local`, the database and generated images are **git-ignored** — never
+  commit real keys.
+- This app has **no authentication**: it is designed to run locally.
+  Do not expose it to the public internet as-is; add auth first (planned
+  alongside cloud deployment).
 
-**posts** — `id`, `platform` (`instagram`/`linkedin`), `topic`, `audience`,
-`content_json`, `caption`, `hashtags`, `status`
-(`draft`/`approved`/`published`), `scheduled_for`, `created_at`, `published_at`
+## Roadmap
 
-**settings** — `key`, `value` (preferences such as tone and brand colours)
-
-## Theme
-
-| Token          | Value      |
-| -------------- | ---------- |
-| Background     | `#0f0f0f`  |
-| Surface cards  | `#1a1a1a`  |
-| Accent         | `#c8f542`  |
-| Text primary   | `#ffffff`  |
-| Text secondary | `#888888`  |
-| Border         | `#2a2a2a`  |
-| Font           | Inter      |
-
-## Notes
-
-- The scheduler can be started by POSTing to `/api/init` (it also runs schema
-  setup). Wire real Meta/LinkedIn publishing into `lib/scheduler.ts`.
-- Module pages (Instagram, LinkedIn, Leads, Emails, Command Chat, Settings) are
-  scaffolded as placeholders, ready to build out.
+Phases 1–2 shipped (Instagram publishing, real scheduler, token lifecycle).
+Phase 3 = Leads · Phase 4 = Outreach · Phase 5 = polish & analytics.
