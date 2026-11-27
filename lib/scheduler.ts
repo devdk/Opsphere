@@ -11,7 +11,8 @@ import { checkTokenExpiry } from "./tokens";
  *   - token-expiry-check: daily warning / auto-refresh (lib/tokens).
  *
  * Recurring content-GENERATION tasks (the Tasks page) run in the standalone
- * process: `npm run scheduler` (lib/scheduler.js).
+ * process: `npm run scheduler` (scripts/scheduler.js), which also calls
+ * /api/init on every sync to start these jobs.
  *
  * Next.js can evaluate modules more than once, so we guard with a global
  * flag to avoid registering duplicate cron jobs.
@@ -48,8 +49,22 @@ function register(
   console.log(`[scheduler] registered "${name}" (${expression} ${TZ})`);
 }
 
-/** Publish any approved posts whose scheduled_for time has passed — for real. */
+// A carousel publish can outlast the 5-minute interval. Without this flag the
+// next tick would pick up the same still-approved post and publish it twice.
+let publishRunning = false;
+
 async function publishDuePosts(): Promise<void> {
+  if (publishRunning) return;
+  publishRunning = true;
+  try {
+    await publishDueBatch();
+  } finally {
+    publishRunning = false;
+  }
+}
+
+/** Publish any approved posts whose scheduled_for time has passed — for real. */
+async function publishDueBatch(): Promise<void> {
   initSchema();
   const due = db
     .prepare(

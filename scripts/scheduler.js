@@ -4,7 +4,11 @@
  * enabled task on its cron schedule by calling /api/tasks/:id/run, which does
  * the generation + notification + email.
  *
- * Requires the Next server running.  Run a task once:  node lib/scheduler.js --test
+ * Each sync also POSTs /api/init, which starts the web server's own cron
+ * (scheduled publishing + daily token check). It is idempotent, and repeating
+ * it every sync restarts that cron after a dev-server restart.
+ *
+ * Requires the Next server running.  Run a task once:  node scripts/scheduler.js --test
  */
 const fs = require("fs");
 const path = require("path");
@@ -22,6 +26,15 @@ const cron = require("node-cron");
 
 const BASE = process.env.APP_URL || "http://localhost:3000";
 let jobs = [];
+
+async function startServerCron() {
+  try {
+    const res = await fetch(`${BASE}/api/init`, { method: "POST" });
+    if (!res.ok) throw new Error(`POST /api/init ${res.status}`);
+  } catch (e) {
+    console.error(`[scheduler] could not start the server's publish cron (${e.message}). Retrying next sync.`);
+  }
+}
 
 async function fetchTasks() {
   const res = await fetch(`${BASE}/api/tasks`);
@@ -42,11 +55,12 @@ async function fire(task) {
 }
 
 async function sync() {
+  await startServerCron();
   let tasks;
   try {
     tasks = await fetchTasks();
   } catch (e) {
-    console.error(`[scheduler] could not load tasks (${e.message}). Is the web server running? Retrying in 60s.`);
+    console.error(`[scheduler] could not load tasks (${e.message}). Is the web server running? Retrying in 5 min.`);
     return;
   }
   jobs.forEach((j) => j.stop());

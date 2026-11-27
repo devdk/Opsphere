@@ -36,8 +36,10 @@ npm run dev            # dashboard on http://localhost:3000
 npm run scheduler      # (separate terminal) cron runner for recurring tasks
 ```
 
-Then POST `http://localhost:3000/api/init` once (or just open the dashboard)
-to start in-server jobs: scheduled publishing + daily token checks.
+`npm run scheduler` also starts the in-server jobs (scheduled publishing and
+the daily token check) and restarts them within 5 minutes of a dev-server
+restart. Without it, POST `http://localhost:3000/api/init` after each server
+start. Opening the dashboard does not start them.
 
 ### Native module prerequisites
 

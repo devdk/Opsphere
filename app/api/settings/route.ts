@@ -3,6 +3,17 @@ import { db, initSchema, setSetting } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+// The settings table also holds tokens and expiry dates written by lib/meta and
+// lib/tokens. Only these user preferences may be read or written over HTTP.
+const PREFERENCE_KEYS = new Set([
+  "tone",
+  "brand_accent",
+  "brand_bg",
+  "owner_name",
+  "agency",
+  "ig_audience",
+]);
+
 function mask(s: string): string {
   if (s.includes("@")) {
     const [u, d] = s.split("@");
@@ -19,7 +30,9 @@ export async function GET() {
     value: string;
   }[];
   const settings: Record<string, string> = {};
-  for (const r of rows) settings[r.key] = r.value;
+  for (const r of rows) {
+    if (PREFERENCE_KEYS.has(r.key)) settings[r.key] = r.value;
+  }
 
   return NextResponse.json({
     settings,
@@ -43,6 +56,9 @@ export async function GET() {
 export async function POST(req: Request) {
   const { key, value } = (await req.json()) as { key?: string; value?: unknown };
   if (!key) return NextResponse.json({ error: "key required" }, { status: 400 });
+  if (!PREFERENCE_KEYS.has(key)) {
+    return NextResponse.json({ error: `unknown setting: ${key}` }, { status: 400 });
+  }
   setSetting(key, String(value ?? ""));
   return NextResponse.json({ ok: true });
 }
